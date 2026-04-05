@@ -23,3 +23,5 @@ frontend/*.iml
 .DS_Store
 Thumbs.db
 .vscode/
+
+frontend/app/google-services.json
