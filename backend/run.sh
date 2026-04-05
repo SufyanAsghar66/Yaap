@@ -5,8 +5,6 @@
 #
 # Usage:
 #   ./run.sh            → start the full backend (web + redis + celery)
-#   ./run.sh test       → run all unit tests (no external deps needed)
-#   ./run.sh test auth  → run only auth tests
 #   ./run.sh migrate    → apply migrations only
 #   ./run.sh seed       → seed voice sentences
 #   ./run.sh check      → Django system check + dep audit
@@ -101,7 +99,7 @@ cmd_check() {
     check_command pip3
     check_env
     setup_venv
-    DJANGO_SETTINGS_MODULE=yaap.settings_test $MANAGE check --deploy 2>&1 || true
+    $MANAGE check --deploy 2>&1 || true
     $MANAGE check 2>&1
     success "Django check passed."
 }
@@ -122,21 +120,8 @@ cmd_seed() {
 }
 
 cmd_test() {
-    header "Running test suite"
-    setup_venv
-
-    # No external services needed — settings_test uses SQLite + in-memory everything
-    export DJANGO_SETTINGS_MODULE=yaap.settings_test
-
-    FILTER="${2:-}"
-
-    if [ -n "$FILTER" ]; then
-        info "Running tests matching: ${FILTER}"
-        "$VENV_DIR/bin/pytest" -x -v -k "$FILTER" 2>&1
-    else
-        info "Running all tests..."
-        "$VENV_DIR/bin/pytest" --tb=short -v 2>&1
-    fi
+    warn "Automated tests are not included in this repository."
+    exit 0
 }
 
 cmd_start() {
@@ -186,14 +171,13 @@ COMMAND="${1:-start}"
 
 case "$COMMAND" in
     start)   cmd_start   "$@" ;;
-    test)    cmd_test    "$@" ;;
+    test)    cmd_test    "$@" ;;  # no-op: suite removed from repo
     migrate) cmd_migrate "$@" ;;
     seed)    cmd_seed    "$@" ;;
     check)   cmd_check   "$@" ;;
     reset)   cmd_reset   "$@" ;;
     *)
-        echo "Usage: ./run.sh [start|test|migrate|seed|check|reset]"
-        echo "       ./run.sh test auth     # run only tests matching 'auth'"
+        echo "Usage: ./run.sh [start|migrate|seed|check|reset]"
         exit 1
         ;;
 esac

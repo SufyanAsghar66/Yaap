@@ -17,7 +17,6 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0.0"
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // Base URL - change for physical device to LAN IP
         buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:8000\"")
@@ -129,11 +128,6 @@ dependencies {
     implementation("io.github.webrtc-sdk:android:114.5735.05")
     //implementation("org.webrtc:google-webrtc:1.0.32006")
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
-
-    // Testing
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.junit.ext)
-    androidTestImplementation(libs.espresso)
 }
 
 kapt {

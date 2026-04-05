@@ -24,7 +24,7 @@ storage3==0.7.6
 gotrue==2.4.3
 
 # ─── Database ─────────────────────────────────────────────────────────────────
-psycopg2-binary==2.9.9
+psycopg2-binary==2.9.11   # 2.9.9 lacks cp313 wheels on Windows (needs MSVC to build)
 
 
 # ─── Celery / Task Queue ──────────────────────────────────────────────────────
@@ -40,11 +40,11 @@ cryptography==42.0.5
 
 # ─── Storage ──────────────────────────────────────────────────────────────────
 boto3==1.34.84           # AWS S3 (Cloud storage fallback / presigned URLs)
-Pillow==10.3.0           # image processing for avatar resizing
+Pillow>=11.0.0,<12       # image processing (11+ has wheels for Python 3.13; 10.3.0 source build fails on Windows)
 
 # ─── Translation ──────────────────────────────────────────────────────────────
 deepl==1.18.0
-sentencepiece==0.2.0     # Helsinki-NLP tokenizer
+sentencepiece==0.2.1     # Helsinki-NLP tokenizer (0.2.0 has no cp313 wheel on Windows)
 
 # ─── Push Notifications ───────────────────────────────────────────────────────
 firebase-admin==6.5.0
@@ -56,14 +56,6 @@ django-structlog==8.0.0
 # ─── API Documentation ────────────────────────────────────────────────────────
 drf-spectacular==0.27.2
 
-# ─── Testing ──────────────────────────────────────────────────────────────────
-pytest==8.1.1
-pytest-django==4.8.0
-pytest-asyncio==0.23.6
-factory-boy==3.3.0
-faker==24.4.0
-coverage==7.4.4
-
 # ─── Dev Utilities ────────────────────────────────────────────────────────────
 python-decouple==3.8
 whitenoise==6.6.0        # static file serving
@@ -72,7 +64,7 @@ uvicorn[standard]==0.29.0  # ASGI server for Channels
 
 # ─── Phase 4: Audio Processing ────────────────────────────────────────────────
 pydub==0.25.1            # audio format conversion (requires ffmpeg system package)
-torch==2.2.2             # Silero VAD + XTTS dependencies
-torchaudio==2.2.2        # audio I/O for VAD
+torch==2.6.0             # Silero VAD + XTTS deps (2.2.x has no Python 3.13 wheels)
+torchaudio==2.6.0        # audio I/O for VAD — keep version aligned with torch
 pyaudio==0.2.14          # microphone input (used by mobile — not needed server-side, optional)
 soundfile==0.12.1        # WAV/FLAC I/O alternative to wave module

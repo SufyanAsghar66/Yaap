@@ -167,3 +167,11 @@ fun String.isValidEmail(): Boolean {
 }
 
 fun String.isValidPassword(): Boolean = length >= Constants.MIN_PASSWORD_LENGTH
+
+/** Matches backend: min 2 chars, not digits-only ([SignupSerializer.validate_full_name]). */
+fun String.isValidFullName(): Boolean {
+    val t = trim()
+    if (t.length < 2) return false
+    if (t.matches(Regex("^\\d+$"))) return false
+    return true
+}

@@ -92,10 +92,7 @@
             android:turnScreenOn="true"
             android:showWhenLocked="true" />
 
-        <!-- Settings -->
-        <activity
-            android:name=".ui.settings.SettingsActivity"
-            android:exported="false" />
+        <!-- Settings: shown as SettingsFragment inside MainActivity -->
 
         <!-- FCM Service -->
         <service

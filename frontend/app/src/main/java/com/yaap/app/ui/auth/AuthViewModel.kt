@@ -36,10 +36,10 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun signup(email: String, password: String, fullName: String) {
+    fun signup(email: String, password: String, passwordConfirm: String, fullName: String) {
         viewModelScope.launch {
             _authState.value = Result.Loading
-            val result = repo.signup(email, password, fullName)
+            val result = repo.signup(email, password, passwordConfirm, fullName)
             if (result is Result.Success) {
                 repo.saveTokens(result.data.accessToken, result.data.refreshToken)
             }

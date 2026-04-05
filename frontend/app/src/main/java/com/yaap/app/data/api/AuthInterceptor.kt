@@ -60,12 +60,12 @@ class TokenAuthenticator @Inject constructor(
         return runBlocking {
             try {
                 val refreshResponse = lazyApiService.get()
-                    .refreshToken(RefreshTokenRequest(refreshToken))
+                    .refreshToken(RefreshTokenRequest(refresh = refreshToken))
                 if (refreshResponse.isSuccessful) {
                     val body = refreshResponse.body()!!
-                    tokenManager.saveTokens(body.accessToken, body.refreshToken)
+                    tokenManager.saveTokens(body.tokens.access, body.tokens.refresh)
                     response.request.newBuilder()
-                        .header("Authorization", "Bearer ${body.accessToken}")
+                        .header("Authorization", "Bearer ${body.tokens.access}")
                         .header("X-Retry-After-Refresh", "true")
                         .build()
                 } else {

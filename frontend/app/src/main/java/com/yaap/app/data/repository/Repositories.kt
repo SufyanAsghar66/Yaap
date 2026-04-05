@@ -7,6 +7,7 @@ import com.yaap.app.data.local.entity.ConversationEntity
 import com.yaap.app.data.local.entity.MessageEntity
 import com.yaap.app.model.*
 import com.yaap.app.utils.Result
+import com.yaap.app.utils.map
 import kotlinx.coroutines.flow.Flow
 import okhttp3.MultipartBody
 import javax.inject.Inject
@@ -24,7 +25,7 @@ class ChatRepository @Inject constructor(
     fun observeConversations(): Flow<List<ConversationEntity>> = conversationDao.observeAll()
 
     suspend fun refreshConversations(): Result<List<Conversation>> {
-        val result = safeCall { api.getConversations() }
+        val result = safeCall { api.getConversations() }.map { it.conversations }
         if (result is Result.Success) {
             val entities = result.data.map { c ->
                 ConversationEntity(
@@ -47,9 +48,8 @@ class ChatRepository @Inject constructor(
         return result
     }
 
-    suspend fun startConversation(userId: String): Result<StartConversationResponse> = safeCall {
-        api.startConversation(StartConversationRequest(userId))
-    }
+    suspend fun startConversation(userId: String): Result<StartConversationResponse> =
+        safeCall { api.startConversation(StartConversationRequest(userId)) }.map { StartConversationResponse(it.conversation.id) }
 
     suspend fun getMessages(conversationId: String, cursor: String? = null): Result<MessagesPage> {
         val result = safeCall { api.getMessages(conversationId, cursor) }
@@ -92,25 +92,23 @@ class FriendRepository @Inject constructor(private val api: YaapApiService) {
         api.registerDevice(RegisterDeviceRequest(fcmToken, deviceName))
     }
 
-    suspend fun getFriends(): Result<List<Friendship>> = safeCall { api.getFriends() }
+    suspend fun getFriends(): Result<List<Friendship>> =
+        safeCall { api.getFriends() }.map { it.friends }
 
     suspend fun unfriend(friendshipId: String): Result<MessageResponse> = safeCall {
         api.unfriend(friendshipId)
     }
 
-    suspend fun sendFriendRequest(toUserId: String): Result<FriendRequest> = safeCall {
-        api.sendFriendRequest(SendFriendRequest(toUserId))
-    }
+    suspend fun sendFriendRequest(toUserId: String): Result<FriendRequest> =
+        safeCall { api.sendFriendRequest(SendFriendRequest(toUserId)) }.map { it.request }
 
-    suspend fun getReceivedRequests(): Result<List<FriendRequest>> = safeCall {
-        api.getReceivedRequests()
-    }
+    suspend fun getReceivedRequests(): Result<List<FriendRequest>> =
+        safeCall { api.getReceivedRequests() }.map { it.requests }
 
-    suspend fun getSentRequests(): Result<List<FriendRequest>> = safeCall {
-        api.getSentRequests()
-    }
+    suspend fun getSentRequests(): Result<List<FriendRequest>> =
+        safeCall { api.getSentRequests() }.map { it.requests }
 
-    suspend fun acceptRequest(requestId: String): Result<Friendship> = safeCall {
+    suspend fun acceptRequest(requestId: String): Result<MessageResponse> = safeCall {
         api.acceptFriendRequest(requestId)
     }
 
@@ -130,7 +128,8 @@ class FriendRepository @Inject constructor(private val api: YaapApiService) {
         api.unblockUser(userId)
     }
 
-    suspend fun getBlockedUsers(): Result<List<User>> = safeCall { api.getBlockedUsers() }
+    suspend fun getBlockedUsers(): Result<List<User>> =
+        safeCall { api.getBlockedUsers() }.map { it.blocked }
 }
 
 // ────────────────────────────────────────────────────────────────────
@@ -139,7 +138,8 @@ class FriendRepository @Inject constructor(private val api: YaapApiService) {
 @Singleton
 class VoiceRepository @Inject constructor(private val api: YaapApiService) {
 
-    suspend fun getSentences(): Result<List<VoiceSentence>> = safeCall { api.getVoiceSentences() }
+    suspend fun getSentences(): Result<List<VoiceSentence>> =
+        safeCall { api.getVoiceSentences() }.map { it.sentences }
 
     suspend fun uploadSample(
         audioPart: MultipartBody.Part,
@@ -147,15 +147,17 @@ class VoiceRepository @Inject constructor(private val api: YaapApiService) {
         sentenceId: String
     ): Result<VoiceSampleResponse> = safeCall {
         api.uploadVoiceSample(audioPart, sampleIndex, sentenceId)
-    }
+    }.map { it.toVoiceSampleResponse() }
 
     suspend fun deleteSample(index: Int): Result<MessageResponse> = safeCall {
         api.deleteVoiceSample(index)
     }
 
-    suspend fun trainVoice(): Result<VoiceTrainResponse> = safeCall { api.trainVoice() }
+    suspend fun trainVoice(): Result<VoiceTrainResponse> =
+        safeCall { api.trainVoice() }.map { it.toVoiceTrainResponse() }
 
-    suspend fun getVoiceStatus(): Result<VoiceStatusResponse> = safeCall { api.getVoiceStatus() }
+    suspend fun getVoiceStatus(): Result<VoiceStatusResponse> =
+        safeCall { api.getVoiceStatus() }.map { it.toVoiceStatusResponse() }
 
     suspend fun resetVoice(): Result<MessageResponse> = safeCall { api.resetVoice() }
 }
@@ -167,7 +169,7 @@ class VoiceRepository @Inject constructor(private val api: YaapApiService) {
 class CallRepository @Inject constructor(private val api: YaapApiService) {
 
     suspend fun initiateCall(calleeId: String, language: String? = null): Result<InitiateCallResponse> =
-        safeCall { api.initiateCall(InitiateCallRequest(calleeId, language)) }
+        safeCall { api.initiateCall(InitiateCallRequest(calleeId, language)) }.map { it.toInitiateCallResponse() }
 
     suspend fun getIceConfig(roomId: String): Result<IceConfigResponse> = safeCall {
         api.getIceConfig(roomId)
@@ -178,4 +180,7 @@ class CallRepository @Inject constructor(private val api: YaapApiService) {
     suspend fun declineCall(roomId: String): Result<MessageResponse> = safeCall {
         api.declineCall(roomId)
     }
+
+    suspend fun getCallHistory(): Result<List<Map<String, Any>>> =
+        safeCall { api.getCallHistory() }.map { it.calls }
 }

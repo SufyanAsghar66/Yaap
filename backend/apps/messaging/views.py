@@ -41,6 +41,56 @@ class ConversationDetailView(APIView):
 
 class MessageListView(APIView):
     permission_classes = [IsAuthenticated]
+
+    def post(self, request, conversation_id):
+        """REST send message (WebSocket flow also exists in chat_consumer)."""
+        try:
+            conv = Conversation.objects.get(
+                Q(id=conversation_id) & (Q(participant_a=request.user) | Q(participant_b=request.user))
+            )
+        except Conversation.DoesNotExist:
+            return _err("NOT_FOUND", "Conversation not found.", status.HTTP_404_NOT_FOUND)
+
+        raw = request.data.get("content")
+        content = (raw or "").strip() if isinstance(raw, str) else ""
+        if not content:
+            return _err("EMPTY", "Message cannot be empty.")
+        if len(content) > 4000:
+            return _err("TOO_LONG", "Message exceeds maximum length.", status.HTTP_400_BAD_REQUEST)
+
+        msg = Message.objects.create(
+            conversation=conv,
+            sender=request.user,
+            content=content,
+            original_language=getattr(request.user, "language_preference", None) or "en",
+        )
+        conv.last_message = msg
+        conv.save(update_fields=["last_message", "updated_at"])
+
+        other = conv.other_participant(request.user)
+        if (
+            other.language_preference
+            and other.language_preference != msg.original_language
+        ):
+            from services.translation import translate_message_task
+
+            translate_message_task.apply_async(
+                args=[str(msg.id), other.language_preference], queue="translation"
+            )
+
+        return _ok(
+            {
+                "message": MessageSerializer(
+                    msg,
+                    context={
+                        "request": request,
+                        "preferred_language": request.user.language_preference,
+                    },
+                ).data
+            },
+            status.HTTP_201_CREATED,
+        )
+
     def get(self, request, conversation_id):
         try:
             conv = Conversation.objects.get(Q(id=conversation_id) & (Q(participant_a=request.user) | Q(participant_b=request.user)))
@@ -94,7 +144,12 @@ class DeleteMessageView(APIView):
         if request.user.id not in (conv.participant_a_id, conv.participant_b_id):
             return _err("FORBIDDEN", "Not a participant.", status.HTTP_403_FORBIDDEN)
         if scope == "everyone":
-            if msg.sender_id != request.user.id: return _err("NOT_SENDER", "Only sender can delete for everyone.")
+            if msg.sender_id != request.user.id:
+                return _err(
+                    "NOT_SENDER",
+                    "Only sender can delete for everyone.",
+                    status.HTTP_403_FORBIDDEN,
+                )
             if not msg.can_delete_for_everyone(request.user): return _err("WINDOW_EXPIRED", "Delete window has passed.")
             msg.delete_for_everyone()
         else:
