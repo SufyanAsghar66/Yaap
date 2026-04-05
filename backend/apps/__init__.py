@@ -1,0 +1,1 @@
+# YAAP Django apps package

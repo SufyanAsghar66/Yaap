@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Change Photo"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/color_dark_text"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:id="@+id/tv_camera"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:gravity="center_vertical"
+        android:text="📷  Take Photo"
+        android:textSize="15sp"
+        android:textColor="@color/color_dark_text"
+        android:paddingStart="8dp"
+        android:background="?attr/selectableItemBackground"/>
+
+    <TextView
+        android:id="@+id/tvGallery"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Choose from Gallery" />
+
+    <TextView
+        android:id="@+id/tv_gallery"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:gravity="center_vertical"
+        android:text="🖼  Choose from Gallery"
+        android:textSize="15sp"
+        android:textColor="@color/color_dark_text"
+        android:paddingStart="8dp"
+        android:background="?attr/selectableItemBackground"/>
+
+    <TextView
+        android:id="@+id/tv_remove"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:gravity="center_vertical"
+        android:text="🗑  Remove Photo"
+        android:textSize="15sp"
+        android:textColor="@color/color_danger"
+        android:paddingStart="8dp"
+        android:background="?attr/selectableItemBackground"/>
+
+</LinearLayout>

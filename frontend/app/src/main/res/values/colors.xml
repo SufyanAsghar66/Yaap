@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand -->
+    <color name="color_primary">#3D3D8F</color>
+    <color name="color_primary_dark">#2B2B6E</color>
+    <color name="color_secondary">#4F4FD9</color>
+    <color name="color_accent">#6C63FF</color>
+
+    <!-- Surface -->
+    <color name="color_surface">#F5F6FA</color>
+    <color name="color_card_bg">#FFFFFF</color>
+
+    <!-- Text -->
+    <color name="color_dark_text">#1A1A2E</color>
+    <color name="color_muted_text">#8A8AAD</color>
+
+    <!-- Borders -->
+    <color name="color_border">#E0E0F0</color>
+
+    <!-- Status -->
+    <color name="color_success">#2ECC71</color>
+    <color name="color_warning">#F39C12</color>
+    <color name="color_danger">#E74C3C</color>
+
+    <!-- Misc -->
+    <color name="color_online">#2ECC71</color>
+    <color name="color_offline">#8A8AAD</color>
+    <color name="color_shadow">#143D3D8F</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="transparent">#00000000</color>
+
+    <!-- Bubble colors -->
+    <color name="color_bubble_sent">#4F4FD9</color>
+    <color name="color_bubble_received">#FFFFFF</color>
+    <color name="color_bubble_deleted">#F0F0F5</color>
+
+    <!-- Call screen -->
+    <color name="color_call_bg_start">#3D3D8F</color>
+    <color name="color_call_bg_end">#1A1A4E</color>
+    <color name="color_call_accept">#2ECC71</color>
+    <color name="color_call_decline">#E74C3C</color>
+</resources>

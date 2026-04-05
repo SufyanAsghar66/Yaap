@@ -1,0 +1,25 @@
+# Python
+backend/.venv/
+backend/__pycache__/
+backend/*.pyc
+backend/db.sqlite3
+backend/.env
+backend/media/
+backend/staticfiles/
+
+# Django / pytest / cache
+backend/.pytest_cache/
+backend/.mypy_cache/
+backend/.coverage
+
+# Android / Kotlin
+frontend/.gradle/
+frontend/local.properties
+frontend/**/build/
+frontend/.idea/
+frontend/*.iml
+
+# OS / Editors
+.DS_Store
+Thumbs.db
+.vscode/

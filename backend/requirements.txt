@@ -1,0 +1,78 @@
+# ─── Django Core ─────────────────────────────────────────────────────────────
+Django==4.2.11
+djangorestframework==3.15.1
+django-cors-headers==4.3.1
+django-environ==0.11.2
+django-filter==24.1
+
+# ─── Async / WebSocket ────────────────────────────────────────────────────────
+channels==4.1.0
+channels-redis==4.2.0
+daphne==4.1.0
+
+# ─── Authentication ───────────────────────────────────────────────────────────
+djangorestframework-simplejwt==5.3.1
+PyJWT==2.8.0
+google-auth==2.29.0
+google-auth-oauthlib==1.2.0
+httpx==0.27.0          # for Supabase OTP email verification calls
+
+# ─── Supabase ─────────────────────────────────────────────────────────────────
+supabase==2.4.3
+postgrest==0.16.6
+storage3==0.7.6
+gotrue==2.4.3
+
+# ─── Database ─────────────────────────────────────────────────────────────────
+psycopg2-binary==2.9.9
+
+
+# ─── Celery / Task Queue ──────────────────────────────────────────────────────
+celery==5.3.6
+redis==5.0.4
+django-celery-results==2.5.1
+django-celery-beat==2.6.0
+
+# ─── Security ─────────────────────────────────────────────────────────────────
+argon2-cffi==23.1.0
+django-ratelimit==4.1.0
+cryptography==42.0.5
+
+# ─── Storage ──────────────────────────────────────────────────────────────────
+boto3==1.34.84           # AWS S3 (Cloud storage fallback / presigned URLs)
+Pillow==10.3.0           # image processing for avatar resizing
+
+# ─── Translation ──────────────────────────────────────────────────────────────
+deepl==1.18.0
+sentencepiece==0.2.0     # Helsinki-NLP tokenizer
+
+# ─── Push Notifications ───────────────────────────────────────────────────────
+firebase-admin==6.5.0
+
+# ─── Monitoring & Logging ─────────────────────────────────────────────────────
+sentry-sdk==1.44.1
+django-structlog==8.0.0
+
+# ─── API Documentation ────────────────────────────────────────────────────────
+drf-spectacular==0.27.2
+
+# ─── Testing ──────────────────────────────────────────────────────────────────
+pytest==8.1.1
+pytest-django==4.8.0
+pytest-asyncio==0.23.6
+factory-boy==3.3.0
+faker==24.4.0
+coverage==7.4.4
+
+# ─── Dev Utilities ────────────────────────────────────────────────────────────
+python-decouple==3.8
+whitenoise==6.6.0        # static file serving
+gunicorn==22.0.0         # WSGI server
+uvicorn[standard]==0.29.0  # ASGI server for Channels
+
+# ─── Phase 4: Audio Processing ────────────────────────────────────────────────
+pydub==0.25.1            # audio format conversion (requires ffmpeg system package)
+torch==2.2.2             # Silero VAD + XTTS dependencies
+torchaudio==2.2.2        # audio I/O for VAD
+pyaudio==0.2.14          # microphone input (used by mobile — not needed server-side, optional)
+soundfile==0.12.1        # WAV/FLAC I/O alternative to wave module

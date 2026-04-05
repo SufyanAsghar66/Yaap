@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">YAAP</string>
+    <string name="app_tagline">Yet Another App for People</string>
+
+    <!-- Auth -->
+    <string name="label_email">Email</string>
+    <string name="label_password">Password</string>
+    <string name="label_full_name">Full Name</string>
+    <string name="label_confirm_password">Confirm Password</string>
+    <string name="btn_login">Log In</string>
+    <string name="btn_signup">Create Account</string>
+    <string name="btn_send_code">Send Code</string>
+    <string name="btn_verify">Verify</string>
+    <string name="btn_continue">Continue</string>
+    <string name="btn_resend_code">Resend Code</string>
+    <string name="btn_forgot_password">Forgot Password?</string>
+    <string name="hint_enter_email">Enter your email</string>
+    <string name="hint_enter_password">Enter your password</string>
+
+    <!-- Onboarding -->
+    <string name="title_personal_details">Your Profile</string>
+    <string name="title_language_selection">Choose Your Language</string>
+    <string name="subtitle_language_selection">All messages will be translated into this language</string>
+    <string name="title_voice_training">Voice Training</string>
+    <string name="subtitle_voice_training">Read each sentence aloud. We\'ll use your voice for AI-powered call translation.</string>
+    <string name="label_processing_voice">Processing your voice…</string>
+    <string name="noise_warning">Background noise detected — try a quieter location</string>
+
+    <!-- Chat -->
+    <string name="hint_type_message">Type a message…</string>
+    <string name="label_deleted_message">This message was deleted.</string>
+    <string name="label_typing">typing…</string>
+    <string name="empty_conversations">Start chatting! Search for friends to message.</string>
+
+    <!-- Friends -->
+    <string name="empty_friends">No friends yet. Find people to connect with!</string>
+    <string name="empty_requests">You have no pending requests.</string>
+    <string name="hint_search_users">Search by name…</string>
+    <string name="btn_add_friend">Add Friend</string>
+    <string name="btn_requested">Requested</string>
+    <string name="btn_friends">Friends</string>
+    <string name="btn_accept">Accept</string>
+    <string name="btn_decline">Decline</string>
+    <string name="btn_unfriend">Unfriend</string>
+    <string name="btn_block">Block</string>
+
+    <!-- Call -->
+    <string name="label_ringing">Ringing…</string>
+    <string name="label_incoming_call">Incoming call…</string>
+    <string name="label_connecting">Connecting…</string>
+    <string name="label_translating">Translating…</string>
+    <string name="label_transcript">Transcript</string>
+    <string name="label_translation">Translation</string>
+    <string name="btn_accept_call">Accept</string>
+    <string name="btn_decline_call">Decline</string>
+    <string name="btn_end_call">End Call</string>
+
+    <!-- Settings -->
+    <string name="title_settings">Settings</string>
+    <string name="section_profile">Profile</string>
+    <string name="section_voice">Voice</string>
+    <string name="section_privacy">Privacy</string>
+    <string name="section_notifications">Notifications</string>
+    <string name="section_account">Account</string>
+    <string name="row_edit_name">Edit Name</string>
+    <string name="row_edit_bio">Edit Bio</string>
+    <string name="row_change_avatar">Change Avatar</string>
+    <string name="row_change_language">Change Language</string>
+    <string name="row_re_record_voice">Re-record Voice</string>
+    <string name="row_read_receipts">Read Receipts</string>
+    <string name="row_online_status">Show Online Status</string>
+    <string name="row_change_password">Change Password</string>
+    <string name="btn_logout">Log Out</string>
+    <string name="btn_delete_account">Delete Account</string>
+
+    <!-- Errors -->
+    <string name="error_invalid_email">Invalid email address</string>
+    <string name="error_password_short">Password must be at least 8 characters</string>
+    <string name="error_network">No internet connection.</string>
+    <string name="error_timeout">Request timed out. Check your connection.</string>
+    <string name="error_generic">Something went wrong. Please try again.</string>
+</resources>

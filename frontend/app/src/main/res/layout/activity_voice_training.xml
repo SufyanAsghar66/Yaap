@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/color_surface">
+
+    <!-- Toolbar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:background="@color/color_primary"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Voice Training"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"/>
+    </LinearLayout>
+
+    <!-- Progress -->
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="visible"/>
+
+    <!-- Content group -->
+    <LinearLayout
+        android:id="@+id/content_group"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:visibility="gone">
+
+        <!-- Step label -->
+        <TextView
+            android:id="@+id/tv_step_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="13sp"
+            android:textColor="@color/color_muted_text"
+            android:layout_gravity="center_horizontal"/>
+
+        <!-- Step dots -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:orientation="horizontal"
+            android:layout_marginTop="12dp">
+
+            <View android:id="@+id/dot1" android:layout_width="12dp" android:layout_height="12dp"
+                android:background="@drawable/dot_outline" android:layout_marginEnd="8dp"/>
+            <View android:id="@+id/dot2" android:layout_width="12dp" android:layout_height="12dp"
+                android:background="@drawable/dot_outline" android:layout_marginEnd="8dp"/>
+            <View android:id="@+id/dot3" android:layout_width="12dp" android:layout_height="12dp"
+                android:background="@drawable/dot_outline" android:layout_marginEnd="8dp"/>
+            <View android:id="@+id/dot4" android:layout_width="12dp" android:layout_height="12dp"
+                android:background="@drawable/dot_outline" android:layout_marginEnd="8dp"/>
+            <View android:id="@+id/dot5" android:layout_width="12dp" android:layout_height="12dp"
+                android:background="@drawable/dot_outline"/>
+        </LinearLayout>
+
+        <!-- Sentence card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="@color/color_card_bg">
+
+            <TextView
+                android:id="@+id/tv_sentence"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="24dp"
+                android:textSize="18sp"
+                android:textColor="@color/color_dark_text"
+                android:gravity="center"
+                android:lineSpacingMultiplier="1.4"/>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Upload progress -->
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/upload_progress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:visibility="gone"/>
+
+        <!-- Waveform -->
+        <com.yaap.app.ui.common.WaveformView
+            android:id="@+id/waveform_view"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:layout_marginTop="24dp"/>
+
+        <!-- Countdown overlay -->
+        <TextView
+            android:id="@+id/tv_countdown"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/bg_countdown"
+            android:gravity="center"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:visibility="gone"
+            android:layout_marginTop="8dp"/>
+
+        <!-- Controls row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="24dp">
+
+            <!-- Re-record -->
+            <ImageButton
+                android:id="@+id/btn_re_record"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_control_button_outline"
+                android:src="@drawable/ic_refresh"
+                android:tint="@color/color_secondary"
+                android:visibility="gone"
+                android:layout_marginEnd="16dp"/>
+
+            <!-- Record -->
+            <ImageButton
+                android:id="@+id/btn_record"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:background="@drawable/bg_record_button"
+                android:src="@drawable/ic_mic"
+                android:tint="@color/white"/>
+
+            <!-- Stop -->
+            <ImageButton
+                android:id="@+id/btn_stop"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:background="@drawable/bg_stop_button"
+                android:src="@drawable/ic_stop"
+                android:tint="@color/white"
+                android:visibility="gone"/>
+
+            <!-- Play -->
+            <ImageButton
+                android:id="@+id/btn_play"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_control_button_outline"
+                android:src="@drawable/ic_play"
+                android:tint="@color/color_secondary"
+                android:visibility="gone"
+                android:layout_marginStart="16dp"/>
+
+            <!-- Accept -->
+            <ImageButton
+                android:id="@+id/btn_accept"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_accept_button_small"
+                android:src="@drawable/ic_check"
+                android:tint="@color/white"
+                android:visibility="gone"
+                android:layout_marginStart="12dp"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Training loading screen -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="32dp">
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/training_progress_bar"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:visibility="gone"/>
+
+        <TextView
+            android:id="@+id/tv_training_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textColor="@color/color_muted_text"
+            android:layout_marginTop="16dp"
+            android:visibility="gone"/>
+    </LinearLayout>
+
+</LinearLayout>

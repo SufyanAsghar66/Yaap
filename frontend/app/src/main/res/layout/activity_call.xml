@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/call_gradient">
+
+    <!-- Caller/Callee Avatar -->
+    <ImageView
+        android:id="@+id/iv_caller_avatar"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="80dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <TextView
+        android:id="@+id/tv_caller_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@+id/iv_caller_avatar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <TextView
+        android:id="@+id/tv_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:textColor="#CCFFFFFF"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/tv_caller_name"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- Duration (active call only) -->
+    <TextView
+        android:id="@+id/tv_duration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:textColor="@color/white"
+        android:text="00:00"
+        android:layout_marginTop="8dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@+id/tv_status"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- Translation card (active call) -->
+    <LinearLayout
+        android:id="@+id/translation_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bg_translation_card"
+        android:padding="16dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@+id/tv_duration"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="24dp">
+
+        <TextView
+            android:id="@+id/tv_transcript"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="13sp"
+            android:textColor="#CCFFFFFF"
+            android:hint="Listening…"
+            android:alpha="0"/>
+
+        <View android:layout_width="match_parent" android:layout_height="1dp"
+            android:background="#33FFFFFF" android:layout_marginTop="8dp" android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/tv_translation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:hint="Translation…"
+            android:alpha="0"/>
+    </LinearLayout>
+
+    <!-- ── Outgoing controls (ringing) ── -->
+    <LinearLayout
+        android:id="@+id/outgoing_controls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone"
+        android:layout_marginBottom="64dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageButton
+            android:id="@+id/btn_end_call"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:background="@drawable/bg_decline_button"
+            android:src="@drawable/ic_call_end"
+            android:tint="@color/white"/>
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="End Call" android:textColor="#AAFFFFFF" android:textSize="12sp"
+            android:layout_marginTop="8dp"/>
+    </LinearLayout>
+
+    <!-- ── Incoming controls (accept/decline) ── -->
+    <LinearLayout
+        android:id="@+id/incoming_controls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:visibility="gone"
+        android:layout_marginBottom="64dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:orientation="vertical" android:gravity="center" android:layout_marginEnd="48dp">
+            <ImageButton android:id="@+id/btn_decline"
+                android:layout_width="64dp" android:layout_height="64dp"
+                android:background="@drawable/bg_decline_button"
+                android:src="@drawable/ic_call_end" android:tint="@color/white"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Decline" android:textColor="#AAFFFFFF" android:textSize="12sp"
+                android:layout_marginTop="8dp"/>
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:orientation="vertical" android:gravity="center">
+            <ImageButton android:id="@+id/btn_accept"
+                android:layout_width="64dp" android:layout_height="64dp"
+                android:background="@drawable/bg_accept_button"
+                android:src="@drawable/ic_call" android:tint="@color/white"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Accept" android:textColor="#AAFFFFFF" android:textSize="12sp"
+                android:layout_marginTop="8dp"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- ── Active call controls ── -->
+    <LinearLayout
+        android:id="@+id/active_controls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:visibility="gone"
+        android:layout_marginBottom="48dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageButton android:id="@+id/btn_mute"
+            android:layout_width="48dp" android:layout_height="48dp"
+            android:background="@drawable/bg_control_button"
+            android:src="@drawable/ic_mic" android:tint="@color/white"
+            android:layout_marginEnd="24dp"/>
+
+        <ImageButton android:id="@+id/btn_end_call_active"
+            android:layout_width="64dp" android:layout_height="64dp"
+            android:background="@drawable/bg_decline_button"
+            android:src="@drawable/ic_call_end" android:tint="@color/white"
+            android:layout_marginEnd="24dp"/>
+
+        <ImageButton android:id="@+id/btn_speaker"
+            android:layout_width="48dp" android:layout_height="48dp"
+            android:background="@drawable/bg_control_button"
+            android:src="@drawable/ic_speaker" android:tint="@color/white"/>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

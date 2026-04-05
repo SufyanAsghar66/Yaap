@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Y letter for YAAP -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30,20 L54,54 L78,20 L88,20 L58,62 L58,88 L50,88 L50,62 L20,20 Z"/>
+</vector>
