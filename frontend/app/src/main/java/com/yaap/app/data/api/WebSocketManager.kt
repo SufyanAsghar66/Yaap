@@ -148,17 +148,29 @@ class ChatWebSocket(
 
     fun send(payload: String) = webSocket?.send(payload)
 
-    fun sendMessage(content: String) =
-        send("""{"type":"send_message","payload":{"content":"${content.replace("\"", "\\\"")}\"}}""")
+    fun sendMessage(content: String) {
+        val payload = JSONObject().put("content", content)
+        send(JSONObject().put("type", "send_message").put("payload", payload).toString())
+    }
 
-    fun sendTypingStart() = send("""{"type":"typing_start","payload":{}}""")
-    fun sendTypingStop() = send("""{"type":"typing_stop","payload":{}}""")
-    fun sendMarkRead(messageId: String) = send("""{"type":"mark_read","payload":{"message_id":"$messageId"}}""")
-    fun sendDeleteMessage(messageId: String, scope: String = "everyone") =
-        send("""{"type":"delete_message","payload":{"message_id":"$messageId","scope":"$scope"}}""")
+    fun sendTypingStart() = send(JSONObject().put("type", "typing_start").put("payload", JSONObject()).toString())
+    
+    fun sendTypingStop() = send(JSONObject().put("type", "typing_stop").put("payload", JSONObject()).toString())
+    
+    fun sendMarkRead(messageId: String) {
+        val payload = JSONObject().put("message_id", messageId)
+        send(JSONObject().put("type", "mark_read").put("payload", payload).toString())
+    }
+    
+    fun sendDeleteMessage(messageId: String, scope: String = "everyone") {
+        val payload = JSONObject().put("message_id", messageId).put("scope", scope)
+        send(JSONObject().put("type", "delete_message").put("payload", payload).toString())
+    }
 
-    fun loadHistory(cursor: String) =
-        send("""{"type":"load_history","payload":{"cursor":"$cursor","page_size":50}}""")
+    fun loadHistory(cursor: String) {
+        val payload = JSONObject().put("cursor", cursor).put("page_size", 50)
+        send(JSONObject().put("type", "load_history").put("payload", payload).toString())
+    }
 
     fun disconnect() {
         isConnected = false

@@ -134,6 +134,9 @@ def translate_message_task(message_id: str, target_language: str):
     Celery task: translate a message and store result in MessageTranslation.
     Called automatically when a message is received by a user with a different
     language preference.
+
+    After saving, pushes the translation to the conversation's WebSocket group
+    so the receiver sees it in real-time.
     """
     from apps.messaging.models import Message, MessageTranslation
 
@@ -159,8 +162,45 @@ def translate_message_task(message_id: str, target_language: str):
         )
         logger.info("Message %s translated to %s", message_id, target_language)
 
+        # Push translated content to the conversation WebSocket group in real-time
+        _push_translation_to_ws(message, target_language, translated)
+
     except Message.DoesNotExist:
         logger.warning("translate_message_task: message %s not found", message_id)
     except Exception as e:
         logger.error("translate_message_task failed: %s", e)
         raise
+
+
+def _push_translation_to_ws(message, target_language: str, translated_content: str):
+    """
+    Send translated message content to the conversation's WebSocket channel group.
+    The ChatConsumer's `chat_message_translated` handler will only deliver it
+    to the user whose language_preference matches.
+    """
+    try:
+        from channels.layers import get_channel_layer
+        from asgiref.sync import async_to_sync
+
+        channel_layer = get_channel_layer()
+        if channel_layer is None:
+            logger.warning("No channel layer configured; cannot push translation via WS.")
+            return
+
+        group_name = f"chat_{message.conversation_id}"
+        async_to_sync(channel_layer.group_send)(
+            group_name,
+            {
+                "type": "chat.message_translated",
+                "payload": {
+                    "message_id": str(message.id),
+                    "language": target_language,
+                    "translated_content": translated_content,
+                },
+            },
+        )
+        logger.info("Pushed translation for message %s to WS group %s", message.id, group_name)
+    except Exception as e:
+        # Non-fatal: the translation is saved in DB regardless
+        logger.warning("Failed to push translation via WS: %s", e)
+

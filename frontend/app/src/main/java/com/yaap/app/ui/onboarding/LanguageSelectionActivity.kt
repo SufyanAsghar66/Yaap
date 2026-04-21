@@ -94,7 +94,7 @@ class LanguageSelectionActivity : AppCompatActivity() {
                 when (state) {
                     is Result.Loading -> binding.btnContinue.isEnabled = false
                     is Result.Success<*> -> {
-                        startActivity(Intent(this@LanguageSelectionActivity, VoiceTrainingActivity::class.java).apply {
+                        startActivity(Intent(this@LanguageSelectionActivity, com.yaap.app.ui.main.MainActivity::class.java).apply {
                             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
                         })
                         finish()

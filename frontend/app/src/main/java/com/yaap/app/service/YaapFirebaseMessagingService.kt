@@ -4,24 +4,66 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.yaap.app.R
+import com.yaap.app.data.api.YaapApiService
+import com.yaap.app.model.RegisterDeviceRequest
 import com.yaap.app.ui.call.CallActivity
 import com.yaap.app.ui.chat.ChatActivity
 import com.yaap.app.ui.friends.FriendshipActivity
 import com.yaap.app.ui.main.MainActivity
 import com.yaap.app.utils.Constants
+import com.yaap.app.utils.TokenManager
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class YaapFirebaseMessagingService : FirebaseMessagingService() {
 
+    @Inject lateinit var apiService: YaapApiService
+    @Inject lateinit var tokenManager: TokenManager
+
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    companion object {
+        private const val TAG = "YaapFCM"
+    }
+
+    /**
+     * Called when FCM generates a new registration token.
+     * Posts the token to the backend so push notifications can be sent to this device.
+     */
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        // Token refresh — re-register with backend
-        // Launch a WorkManager task to POST /friends/devices/ with new token
+        Log.d(TAG, "New FCM token received")
+
+        // Only register if the user is logged in (has an access token)
+        if (tokenManager.hasValidToken()) {
+            serviceScope.launch {
+                try {
+                    val deviceName = "${Build.MANUFACTURER} ${Build.MODEL}"
+                    val response = apiService.registerDevice(
+                        RegisterDeviceRequest(fcmToken = token, deviceName = deviceName)
+                    )
+                    if (response.isSuccessful) {
+                        Log.d(TAG, "FCM token registered with backend")
+                    } else {
+                        Log.w(TAG, "FCM token registration failed: ${response.code()}")
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "FCM token registration error", e)
+                }
+            }
+        } else {
+            Log.d(TAG, "User not logged in, skipping FCM token registration")
+        }
     }
 
     override fun onMessageReceived(message: RemoteMessage) {

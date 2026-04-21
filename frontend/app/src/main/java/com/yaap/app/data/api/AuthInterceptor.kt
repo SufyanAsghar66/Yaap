@@ -1,11 +1,16 @@
 package com.yaap.app.data.api
+import com.google.gson.Gson
+import com.yaap.app.model.ApiEnvelope
 import com.yaap.app.model.RefreshTokenRequest
+import com.yaap.app.model.TokenRefreshDataResponse
 import com.yaap.app.utils.TokenManager
 import dagger.Lazy
 import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator
 import okhttp3.Interceptor
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import okhttp3.Route
 import javax.inject.Inject
@@ -38,6 +43,9 @@ class AuthInterceptor @Inject constructor(
  *   YaapApiService → TokenAuthenticator → OkHttpClient → Retrofit → YaapApiService
  * Lazy defers the YaapApiService lookup until first actual 401, after the
  * entire object graph has been constructed.
+ *
+ * Key fix: Backend's SimpleJWT expects {"refresh": "..."} and returns
+ * {"success": true, "data": {"tokens": {"access": "...", "refresh": "..."}}}
  */
 @Singleton
 class TokenAuthenticator @Inject constructor(
@@ -59,15 +67,23 @@ class TokenAuthenticator @Inject constructor(
 
         return runBlocking {
             try {
+                // Send {"refresh": "..."} — matches SimpleJWT's expected field name
                 val refreshResponse = lazyApiService.get()
                     .refreshToken(RefreshTokenRequest(refreshToken))
+
                 if (refreshResponse.isSuccessful) {
-                    val body = refreshResponse.body()!!
-                    tokenManager.saveTokens(body.accessToken, body.refreshToken)
-                    response.request.newBuilder()
-                        .header("Authorization", "Bearer ${body.accessToken}")
-                        .header("X-Retry-After-Refresh", "true")
-                        .build()
+                    val envelope = refreshResponse.body()
+                    if (envelope != null && envelope.success && envelope.data != null) {
+                        val tokens = envelope.data.tokens
+                        tokenManager.saveTokens(tokens.access, tokens.refresh)
+                        response.request.newBuilder()
+                            .header("Authorization", "Bearer ${tokens.access}")
+                            .header("X-Retry-After-Refresh", "true")
+                            .build()
+                    } else {
+                        tokenManager.clearTokens()
+                        null
+                    }
                 } else {
                     tokenManager.clearTokens()
                     null

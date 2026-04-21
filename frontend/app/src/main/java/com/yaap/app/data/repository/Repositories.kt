@@ -24,37 +24,56 @@ class ChatRepository @Inject constructor(
     fun observeConversations(): Flow<List<ConversationEntity>> = conversationDao.observeAll()
 
     suspend fun refreshConversations(): Result<List<Conversation>> {
-        val result = safeCall { api.getConversations() }
-        if (result is Result.Success) {
-            val entities = result.data.map { c ->
-                ConversationEntity(
-                    id = c.id,
-                    otherUserId = c.otherUser.id,
-                    otherUserName = c.otherUser.displayName,
-                    otherUserAvatar = c.otherUser.avatarUrl,
-                    otherUserCountryCode = c.otherUser.countryCode,
-                    otherUserTimezone = c.otherUser.timezone,
-                    otherUserOnline = c.otherUser.isOnline,
-                    lastMessageContent = c.lastMessage?.content,
-                    lastMessageTranslation = c.lastMessage?.translation,
-                    lastMessageTimestamp = c.lastMessage?.createdAt,
-                    unreadCount = c.unreadCount,
-                    updatedAt = c.updatedAt
-                )
+        // Unwrap envelope → get ConversationsDataResponse → extract conversations list
+        val result = safeApiCall { api.getConversations() }
+        return when (result) {
+            is Result.Success -> {
+                val conversations = result.data.conversations
+                val entities = conversations.map { c ->
+                    ConversationEntity(
+                        id = c.id,
+                        otherUserId = c.otherUser.id,
+                        otherUserName = c.otherUser.displayName,
+                        otherUserAvatar = c.otherUser.avatarUrl,
+                        otherUserCountryCode = c.otherUser.countryCode,
+                        otherUserTimezone = c.otherUser.timezone,
+                        otherUserOnline = c.otherUser.isOnline,
+                        lastMessageContent = c.lastMessage?.content,
+                        lastMessageTranslation = c.lastMessage?.translation,
+                        lastMessageTimestamp = c.lastMessage?.createdAt,
+                        unreadCount = c.unreadCount,
+                        updatedAt = c.updatedAt
+                    )
+                }
+                conversationDao.upsertAll(entities)
+                Result.Success(conversations)
             }
-            conversationDao.upsertAll(entities)
+            is Result.Error -> Result.Error(result.message, result.code)
+            is Result.Loading -> Result.Loading
+            is Result.Idle -> Result.Idle
         }
-        return result
     }
 
-    suspend fun startConversation(userId: String): Result<StartConversationResponse> = safeCall {
-        api.startConversation(StartConversationRequest(userId))
+    suspend fun startConversation(userId: String): Result<StartConversationResponse> {
+        val result = safeApiCall {
+            api.startConversation(StartConversationRequest(userId))
+        }
+        return when (result) {
+            is Result.Success -> {
+                val conv = result.data.conversation
+                Result.Success(StartConversationResponse(id = conv.id))
+            }
+            is Result.Error -> Result.Error(result.message, result.code)
+            is Result.Loading -> Result.Loading
+            is Result.Idle -> Result.Idle
+        }
     }
 
     suspend fun getMessages(conversationId: String, cursor: String? = null): Result<MessagesPage> {
-        val result = safeCall { api.getMessages(conversationId, cursor) }
+        val result = safeApiCall { api.getMessages(conversationId, cursor) }
         if (result is Result.Success) {
-            val entities = result.data.messages.map { m ->
+            val page = result.data
+            val entities = page.messages.map { m ->
                 MessageEntity(
                     id = m.id,
                     conversationId = m.conversationId,
@@ -74,10 +93,30 @@ class ChatRepository @Inject constructor(
     fun observeMessages(conversationId: String): Flow<List<MessageEntity>> =
         messageDao.observeMessages(conversationId)
 
-    suspend fun translateMessage(messageId: String, language: String): Result<TranslateMessageResponse> =
-        safeCall { api.translateMessage(messageId, TranslateMessageRequest(language)) }
+    suspend fun insertMessage(entity: MessageEntity) {
+        messageDao.insert(entity)
+    }
 
-    suspend fun deleteMessage(messageId: String): Result<MessageResponse> = safeCall {
+    suspend fun insertMessages(entities: List<MessageEntity>) {
+        messageDao.upsertAll(entities)
+    }
+
+    suspend fun updateMessageTranslation(messageId: String, translation: String) {
+        messageDao.updateTranslation(messageId, translation)
+    }
+
+    suspend fun markMessageDeleted(messageId: String) {
+        messageDao.markDeleted(messageId)
+    }
+
+    suspend fun updateMessageStatus(messageId: String, status: String) {
+        messageDao.updateStatus(messageId, status)
+    }
+
+    suspend fun translateMessage(messageId: String, language: String): Result<TranslateMessageDataResponse> =
+        safeApiCall { api.translateMessage(messageId, TranslateMessageRequest(language)) }
+
+    suspend fun deleteMessage(messageId: String): Result<MessageResponse> = safeApiCall {
         api.deleteMessage(messageId)
     }
 }
@@ -88,49 +127,77 @@ class ChatRepository @Inject constructor(
 @Singleton
 class FriendRepository @Inject constructor(private val api: YaapApiService) {
 
-    suspend fun registerDevice(fcmToken: String, deviceName: String): Result<MessageResponse> = safeCall {
+    suspend fun registerDevice(fcmToken: String, deviceName: String): Result<MessageResponse> = safeApiCall {
         api.registerDevice(RegisterDeviceRequest(fcmToken, deviceName))
     }
 
-    suspend fun getFriends(): Result<List<Friendship>> = safeCall { api.getFriends() }
+    suspend fun getFriends(): Result<List<Friendship>> {
+        val result = safeApiCall { api.getFriends() }
+        return when (result) {
+            is Result.Success -> Result.Success(result.data.friends)
+            is Result.Error -> Result.Error(result.message, result.code)
+            is Result.Loading -> Result.Loading
+            is Result.Idle -> Result.Idle
+        }
+    }
 
-    suspend fun unfriend(friendshipId: String): Result<MessageResponse> = safeCall {
+    suspend fun unfriend(friendshipId: String): Result<MessageResponse> = safeApiCall {
         api.unfriend(friendshipId)
     }
 
-    suspend fun sendFriendRequest(toUserId: String): Result<FriendRequest> = safeCall {
-        api.sendFriendRequest(SendFriendRequest(toUserId))
+    suspend fun sendFriendRequest(toUserId: String): Result<FriendRequest> {
+        val result = safeApiCall {
+            api.sendFriendRequest(SendFriendRequest(toUserId))
+        }
+        return when (result) {
+            is Result.Success -> Result.Success(result.data.request)
+            is Result.Error -> Result.Error(result.message, result.code)
+            is Result.Loading -> Result.Loading
+            is Result.Idle -> Result.Idle
+        }
     }
 
-    suspend fun getReceivedRequests(): Result<List<FriendRequest>> = safeCall {
-        api.getReceivedRequests()
+    suspend fun getReceivedRequests(): Result<List<FriendRequest>> {
+        val result = safeApiCall { api.getReceivedRequests() }
+        return when (result) {
+            is Result.Success -> Result.Success(result.data.requests)
+            is Result.Error -> Result.Error(result.message, result.code)
+            is Result.Loading -> Result.Loading
+            is Result.Idle -> Result.Idle
+        }
     }
 
-    suspend fun getSentRequests(): Result<List<FriendRequest>> = safeCall {
-        api.getSentRequests()
+    suspend fun getSentRequests(): Result<List<FriendRequest>> {
+        val result = safeApiCall { api.getSentRequests() }
+        return when (result) {
+            is Result.Success -> Result.Success(result.data.requests)
+            is Result.Error -> Result.Error(result.message, result.code)
+            is Result.Loading -> Result.Loading
+            is Result.Idle -> Result.Idle
+        }
     }
 
-    suspend fun acceptRequest(requestId: String): Result<Friendship> = safeCall {
+    suspend fun acceptRequest(requestId: String): Result<AcceptRequestDataResponse> = safeApiCall {
         api.acceptFriendRequest(requestId)
     }
 
-    suspend fun declineRequest(requestId: String): Result<MessageResponse> = safeCall {
+    suspend fun declineRequest(requestId: String): Result<MessageResponse> = safeApiCall {
         api.declineFriendRequest(requestId)
     }
 
-    suspend fun cancelRequest(requestId: String): Result<MessageResponse> = safeCall {
+    suspend fun cancelRequest(requestId: String): Result<MessageResponse> = safeApiCall {
         api.cancelFriendRequest(requestId)
     }
 
-    suspend fun blockUser(userId: String): Result<MessageResponse> = safeCall {
+    suspend fun blockUser(userId: String): Result<MessageResponse> = safeApiCall {
         api.blockUser(BlockRequest(userId))
     }
 
-    suspend fun unblockUser(userId: String): Result<MessageResponse> = safeCall {
+    suspend fun unblockUser(userId: String): Result<MessageResponse> = safeApiCall {
         api.unblockUser(userId)
     }
 
-    suspend fun getBlockedUsers(): Result<List<User>> = safeCall { api.getBlockedUsers() }
+    suspend fun getBlockedUsers(): Result<Map<String, Any>> = safeApiCall { api.getBlockedUsers() }
 }
 
 // ────────────────────────────────────────────────────────────────────
@@ -139,25 +206,27 @@ class FriendRepository @Inject constructor(private val api: YaapApiService) {
 @Singleton
 class VoiceRepository @Inject constructor(private val api: YaapApiService) {
 
-    suspend fun getSentences(): Result<List<VoiceSentence>> = safeCall { api.getVoiceSentences() }
+    suspend fun getSentences(): Result<VoiceSentencesDataResponse> = safeApiCall {
+        api.getVoiceSentences()
+    }
 
     suspend fun uploadSample(
         audioPart: MultipartBody.Part,
         sampleIndex: Int,
         sentenceId: String
-    ): Result<VoiceSampleResponse> = safeCall {
+    ): Result<VoiceSampleDataResponse> = safeApiCall {
         api.uploadVoiceSample(audioPart, sampleIndex, sentenceId)
     }
 
-    suspend fun deleteSample(index: Int): Result<MessageResponse> = safeCall {
+    suspend fun deleteSample(index: Int): Result<MessageResponse> = safeApiCall {
         api.deleteVoiceSample(index)
     }
 
-    suspend fun trainVoice(): Result<VoiceTrainResponse> = safeCall { api.trainVoice() }
+    suspend fun trainVoice(): Result<VoiceTrainDataResponse> = safeApiCall { api.trainVoice() }
 
-    suspend fun getVoiceStatus(): Result<VoiceStatusResponse> = safeCall { api.getVoiceStatus() }
+    suspend fun getVoiceStatus(): Result<VoiceStatusDataResponse> = safeApiCall { api.getVoiceStatus() }
 
-    suspend fun resetVoice(): Result<MessageResponse> = safeCall { api.resetVoice() }
+    suspend fun resetVoice(): Result<MessageResponse> = safeApiCall { api.resetVoice() }
 }
 
 // ────────────────────────────────────────────────────────────────────
@@ -166,16 +235,16 @@ class VoiceRepository @Inject constructor(private val api: YaapApiService) {
 @Singleton
 class CallRepository @Inject constructor(private val api: YaapApiService) {
 
-    suspend fun initiateCall(calleeId: String, language: String? = null): Result<InitiateCallResponse> =
-        safeCall { api.initiateCall(InitiateCallRequest(calleeId, language)) }
+    suspend fun initiateCall(calleeId: String, language: String? = null): Result<InitiateCallDataResponse> =
+        safeApiCall { api.initiateCall(InitiateCallRequest(calleeId, language)) }
 
-    suspend fun getIceConfig(roomId: String): Result<IceConfigResponse> = safeCall {
+    suspend fun getIceConfig(roomId: String): Result<IceConfigDataResponse> = safeApiCall {
         api.getIceConfig(roomId)
     }
 
-    suspend fun endCall(roomId: String): Result<MessageResponse> = safeCall { api.endCall(roomId) }
+    suspend fun endCall(roomId: String): Result<MessageResponse> = safeApiCall { api.endCall(roomId) }
 
-    suspend fun declineCall(roomId: String): Result<MessageResponse> = safeCall {
+    suspend fun declineCall(roomId: String): Result<MessageResponse> = safeApiCall {
         api.declineCall(roomId)
     }
 }

@@ -44,7 +44,7 @@ class PersonalDetailsViewModel @Inject constructor(
             val requestBody = bytes.toRequestBody("image/jpeg".toMediaType())
             val part = MultipartBody.Part.createFormData("avatar", "avatar.jpg", requestBody)
             val result = repo.uploadAvatar(part)
-            if (result is Result.Success) _avatarUrl.value = result.data.avatarUrl
+            if (result is Result.Success) _avatarUrl.value = result.data["avatar_url"]
         }
     }
 

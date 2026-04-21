@@ -2,6 +2,7 @@ package com.yaap.app.ui.chat
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -27,8 +28,11 @@ import com.yaap.app.utils.toMessageTimestamp
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import org.json.JSONArray
 import org.json.JSONObject
 import javax.inject.Inject
+
+private const val TAG = "ChatActivity"
 
 // ────────────────────────────────────────────────────────────────────
 //  ChatActivityViewModel
@@ -90,6 +94,63 @@ class ChatActivityViewModel(
     fun disconnectWebSocket() {
         chatWs?.disconnect()
         chatWs = null
+    }
+
+    // ── Real-time persistence helpers ─────────────────────────────────
+
+    /** Insert a single message from a WebSocket event into Room DB */
+    fun insertMessage(entity: MessageEntity) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                repo.insertMessage(entity)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to insert message: ${e.message}")
+            }
+        }
+    }
+
+    /** Batch insert messages from history load into Room DB */
+    fun insertMessages(entities: List<MessageEntity>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                repo.insertMessages(entities)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to insert messages: ${e.message}")
+            }
+        }
+    }
+
+    /** Update translation for a message (called when backend pushes translated content) */
+    fun updateTranslation(messageId: String, translation: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                repo.updateMessageTranslation(messageId, translation)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to update translation: ${e.message}")
+            }
+        }
+    }
+
+    /** Mark a message as deleted in Room DB */
+    fun markMessageDeleted(messageId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                repo.markMessageDeleted(messageId)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to mark deleted: ${e.message}")
+            }
+        }
+    }
+
+    /** Update message status (e.g. read receipt) */
+    fun updateMessageStatus(messageId: String, status: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                repo.updateMessageStatus(messageId, status)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to update status: ${e.message}")
+            }
+        }
     }
 
     override fun onCleared() {
@@ -170,12 +231,12 @@ class ChatActivity : AppCompatActivity() {
     private fun setupToolbar() {
         binding.btnBack.setOnClickListener { finish() }
         binding.btnCall.setOnClickListener {
-            // Launch call activity
             startActivity(Intent(this, com.yaap.app.ui.call.CallActivity::class.java))
         }
     }
 
     private fun observeState() {
+        // Observe Room DB — reactive list that auto-updates when messages are inserted/updated
         lifecycleScope.launch {
             viewModel.messages.collect { messages ->
                 adapter.submitList(messages.reversed())
@@ -183,27 +244,138 @@ class ChatActivity : AppCompatActivity() {
             }
         }
 
+        // Process WebSocket events and persist to Room DB
         lifecycleScope.launch {
             viewModel.wsEvents.collect { json ->
-                val type = json.optString("type")
-                when (type) {
-                    "chat.typing_start" -> {
-                        binding.typingIndicator.visibility = View.VISIBLE
+                handleWebSocketEvent(json)
+            }
+        }
+    }
+
+    /**
+     * Central handler for all WebSocket events.
+     * Parses the JSON payload and persists changes into Room DB,
+     * which triggers the reactive Flow to update the UI automatically.
+     */
+    private fun handleWebSocketEvent(json: JSONObject) {
+        val type = json.optString("type")
+        val payload = json.optJSONObject("payload")
+
+        Log.d(TAG, "WS event: $type")
+
+        when (type) {
+            "chat.message_new" -> {
+                // Parse the new message and insert into Room DB
+                if (payload != null) {
+                    val entity = parseMessagePayload(payload)
+                    if (entity != null) {
+                        viewModel.insertMessage(entity)
+                        // Auto-mark as read if the message is from the other user
+                        if (entity.senderId != currentUserId) {
+                            viewModel.markRead(entity.id)
+                        }
                     }
-                    "chat.typing_stop" -> {
-                        binding.typingIndicator.visibility = View.GONE
+                }
+                binding.typingIndicator.visibility = View.GONE
+            }
+
+            "chat.history" -> {
+                // Parse the messages array and insert all into Room DB
+                if (payload != null) {
+                    val messagesArray = payload.optJSONArray("messages")
+                    if (messagesArray != null) {
+                        val entities = parseMessageArray(messagesArray)
+                        if (entities.isNotEmpty()) {
+                            viewModel.insertMessages(entities)
+                        }
                     }
-                    "chat.message_new" -> {
-                        // Room DB will update automatically via WebSocket insert
-                        binding.typingIndicator.visibility = View.GONE
+                    val cursor = payload.optString("next_cursor").takeIf {
+                        it.isNotBlank() && it != "null"
                     }
-                    "chat.history" -> {
-                        val cursor = json.optString("next_cursor").takeIf { it.isNotBlank() }
-                        viewModel.nextCursor = cursor
+                    viewModel.nextCursor = cursor
+                }
+            }
+
+            "chat.message_translated" -> {
+                // Real-time translation pushed by backend after Celery task completes
+                if (payload != null) {
+                    val messageId = payload.optString("message_id")
+                    val translatedContent = payload.optString("translated_content")
+                    if (messageId.isNotBlank() && translatedContent.isNotBlank()) {
+                        viewModel.updateTranslation(messageId, translatedContent)
                     }
                 }
             }
+
+            "chat.message_deleted" -> {
+                if (payload != null) {
+                    val messageId = payload.optString("message_id")
+                    if (messageId.isNotBlank()) {
+                        viewModel.markMessageDeleted(messageId)
+                    }
+                }
+            }
+
+            "chat.read_receipt" -> {
+                if (payload != null) {
+                    val messageId = payload.optString("message_id")
+                    if (messageId.isNotBlank()) {
+                        viewModel.updateMessageStatus(messageId, "read")
+                    }
+                }
+            }
+
+            "chat.typing_start" -> {
+                binding.typingIndicator.visibility = View.VISIBLE
+            }
+
+            "chat.typing_stop" -> {
+                binding.typingIndicator.visibility = View.GONE
+            }
+
+            "error" -> {
+                val code = payload?.optString("code") ?: "UNKNOWN"
+                val message = payload?.optString("message") ?: "Unknown error"
+                Log.e(TAG, "WS error: $code — $message")
+            }
         }
+    }
+
+    /**
+     * Parse a single message JSON object (from chat.message_new) into a MessageEntity.
+     * Backend payload shape:
+     *   {"id":"...", "conversation_id":"...", "sender":{"id":"...","display_name":"..."},
+     *    "content":"...", "original_language":"...", "status":"...",
+     *    "deleted_for_everyone":false, "created_at":"...", "updated_at":"..."}
+     */
+    private fun parseMessagePayload(msg: JSONObject): MessageEntity? {
+        return try {
+            val senderId = msg.optJSONObject("sender")?.optString("id")
+                ?: msg.optString("sender_id")
+            MessageEntity(
+                id = msg.getString("id"),
+                conversationId = msg.getString("conversation_id"),
+                senderId = senderId,
+                content = msg.optString("content", ""),
+                translation = null,
+                status = msg.optString("status", "sent"),
+                createdAt = msg.getString("created_at"),
+                deleted = msg.optBoolean("deleted_for_everyone", false)
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to parse message payload: ${e.message}")
+            null
+        }
+    }
+
+    /** Parse an array of message JSON objects (from chat.history) into MessageEntity list. */
+    private fun parseMessageArray(array: JSONArray): List<MessageEntity> {
+        val entities = mutableListOf<MessageEntity>()
+        for (i in 0 until array.length()) {
+            val msg = array.optJSONObject(i) ?: continue
+            parseMessagePayload(msg)?.let { entities.add(it) }
+        }
+        return entities
     }
 
     override fun onDestroy() {
@@ -261,7 +433,6 @@ class MessageAdapter(private val currentUserId: String) :
             b.tvContent.alpha = if (msg.deleted) 0.5f else 1f
             b.tvOriginal.visibility = if (msg.translation != null) View.VISIBLE else View.GONE
             b.tvOriginal.setOnClickListener {
-                // Show original text dialog
                 android.app.AlertDialog.Builder(b.root.context)
                     .setTitle("Original message")
                     .setMessage(msg.content)

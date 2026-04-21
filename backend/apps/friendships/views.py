@@ -300,23 +300,6 @@ class UnblockUserView(APIView):
         logger.info("User %s unblocked %s", request.user.id, user_id)
         return _ok({"message": "User unblocked."})
 
-
-class UnblockUserView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    @extend_schema(summary="Unblock a user", tags=["Friendships"])
-    def delete(self, request, user_id):
-        deleted, _ = Block.objects.filter(
-            blocker=request.user,
-            blocked_id=user_id,
-        ).delete()
-
-        if not deleted:
-            return _err("NOT_FOUND", "Blocked user not found.", status.HTTP_404_NOT_FOUND)
-
-        logger.info("User %s unblocked %s", request.user.id, user_id)
-        return _ok({"message": "User unblocked."})
-
 # ─── Blocked Users List ───────────────────────────────────────────────────────
 
 class BlockedUsersView(APIView):

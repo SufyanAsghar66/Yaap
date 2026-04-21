@@ -61,7 +61,7 @@ class VoiceTrainingViewModel @Inject constructor(
             _state.value = VoiceTrainingState.Loading
             when (val result = repo.getSentences()) {
                 is Result.Success -> {
-                    sentences = result.data
+                    sentences = result.data.sentences
                     _state.value = VoiceTrainingState.Ready(sentences, currentIndex)
                 }
                 is Result.Error -> _state.value = VoiceTrainingState.Error(result.message)

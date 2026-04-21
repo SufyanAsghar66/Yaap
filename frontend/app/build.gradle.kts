@@ -20,8 +20,8 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // Base URL - change for physical device to LAN IP
-        buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:8000\"")
-        buildConfigField("String", "WS_BASE_URL", "\"ws://10.0.2.2:8000\"")
+        buildConfigField("String", "BASE_URL", "\"http://127.0.0.1:8000/\"")
+        buildConfigField("String", "WS_BASE_URL", "\"ws://127.0.0.1:8000\"")
     }
 
     buildTypes {

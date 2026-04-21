@@ -89,7 +89,7 @@ class CallViewModel @Inject constructor(
             _callState.value = CallState.Ringing
             when (val r = repo.initiateCall(calleeId)) {
                 is Result.Success -> {
-                    roomId = r.data.roomId
+                    roomId = r.data.room["id"] as? String ?: r.data.room["room_id"] as? String ?: ""
                     connectSignaling(roomId, isCaller = true)
                 }
                 is Result.Error -> _callState.value = CallState.Error(r.message)

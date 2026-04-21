@@ -23,7 +23,4 @@ urlpatterns = [
 
     # ─── Health Check ─────────────────────────────────────────────────────────
     path("health/",             include("yaap.health")),
-
-    # ─── Pipeline Readiness (extended health for monitoring) ──────────────────────
-    path("health/",             include("yaap.health")),
 ]

@@ -148,6 +148,15 @@ class ChatConsumer(BaseConsumer):
     async def chat_message_deleted(self, event):
         await self.send_event("chat.message_deleted", event["payload"])
 
+    async def chat_message_translated(self, event):
+        """
+        Deliver the translation only to the user whose language preference matches.
+        This event is sent by the Celery translation task after it completes.
+        """
+        payload = event["payload"]
+        if self.user.language_preference == payload.get("language"):
+            await self.send_event("chat.message_translated", payload)
+
     # ── DB helpers ────────────────────────────────────────────────────────────
 
     @database_sync_to_async
